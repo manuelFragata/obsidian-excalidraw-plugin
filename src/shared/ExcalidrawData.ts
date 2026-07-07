@@ -1084,8 +1084,13 @@ export class ExcalidrawData {
           ? data.substring(indexOfNewEmbeddedFiles + embeddedFilesNewLength)
           : data.substring(indexOfOldEmbeddedFiles + embeddedFilesOldLength);
       //Load Embedded files
+      // The path capture uses a lazy `(.*?)` rather than `([^\]]*)` so embedded-file
+      // wikilinks whose target filename itself contains `]` (e.g.
+      // "[[[Author 2025] Title.pdf#page=1]]") parse correctly. With `[^\]]*` the match
+      // stopped at the first `]` inside the filename, so NO embedded files registered
+      // on load and PDF/image pages stayed blank until a manual Save re-derived them.
       const REG_FILEID_FILEPATH =
-        /([\w\d]*):\s*!?\[\[([^\]]*)]]\s*(\{[^}]*})?\n/gm;
+        /([\w\d]*):\s*!?\[\[(.*?)]]\s*(\{[^}]*})?\n/gm;
       res = data.matchAll(REG_FILEID_FILEPATH);
       while (!(parts = res.next()).done) {
         const embeddedFile = new EmbeddedFile(
